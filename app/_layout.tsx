@@ -1,24 +1,48 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { Stack } from "expo-router";
+import { Provider as ReduxProvider } from "react-redux";
+import { PaperProvider } from "react-native-paper";
+import { store } from "../store";
+import { loadState, saveState } from "../store/persist";
+import { setStateFromStorage } from "../store/slices/groupsSlice";
+import { useEffect, useRef } from "react";
+import { appTheme } from "../theme";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    if (loaded.current) return;
+    loaded.current = true;
+    loadState().then(({ groups, expenses }) => {
+      store.dispatch(setStateFromStorage({ groups, expenses }));
+    });
+  }, []);
+
+  useEffect(() => {
+    const unsub = store.subscribe(() => {
+      const state = store.getState();
+      saveState(state.groups.groups, state.groups.expenses);
+    });
+    return unsub;
+  }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ReduxProvider store={store}>
+      <PaperProvider theme={appTheme}>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: appTheme.colors.primaryContainer },
+            headerTintColor: appTheme.colors.onPrimaryContainer,
+          }}
+        >
+          <Stack.Screen name="index" options={{ title: "Gruppen" }} />
+          <Stack.Screen name="add-group" options={{ title: "Neue Gruppe" }} />
+          <Stack.Screen name="edit-group" options={{ title: "Gruppe bearbeiten" }} />
+          <Stack.Screen name="group/[id]/index" options={{ title: "Gruppe" }} />
+          <Stack.Screen name="group/[id]/add-expense" options={{ title: "Ausgabe hinzufügen" }} />
+          <Stack.Screen name="group/[id]/edit-expense" options={{ title: "Ausgabe bearbeiten" }} />
+        </Stack>
+      </PaperProvider>
+    </ReduxProvider>
   );
 }
