@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { TextInput, Button, SegmentedButtons, Text, Chip } from "react-native-paper";
+import { TextInput, Button, SegmentedButtons, Text, Chip, HelperText } from "react-native-paper";
 import type { RootState } from "../../../store";
 import { updateExpense } from "../../../store/slices/groupsSlice";
+import { updateExpense as updateExpenseApi } from "../../../lib/supabaseApi";
 import { appColors } from "../../../theme";
 
 export default function EditExpenseScreen() {
@@ -22,6 +23,8 @@ export default function EditExpenseScreen() {
   const [amountStr, setAmountStr] = useState("");
   const [payerId, setPayerId] = useState("");
   const [splitBetweenIds, setSplitBetweenIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (expense && group) {
@@ -72,21 +75,36 @@ export default function EditExpenseScreen() {
     }
   };
 
-  const save = () => {
+  const save = async () => {
     if (!expenseId) return;
     const amount = parseFloat(amountStr.replace(",", "."));
     if (!title.trim() || isNaN(amount) || amount <= 0 || !payerId) return;
-    dispatch(
-      updateExpense({
-        id: expenseId,
+    setError(null);
+    setLoading(true);
+    try {
+      await updateExpenseApi(expenseId, {
         title: title.trim(),
         description: description.trim(),
         amount,
         payerId,
         splitBetweenIds,
-      })
-    );
-    router.back();
+      });
+      dispatch(
+        updateExpense({
+          id: expenseId,
+          title: title.trim(),
+          description: description.trim(),
+          amount,
+          payerId,
+          splitBetweenIds,
+        })
+      );
+      router.back();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Speichern fehlgeschlagen.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isValid =
@@ -167,6 +185,11 @@ export default function EditExpenseScreen() {
       <Text variant="bodySmall" style={styles.hint}>
         Tippen zum Abwählen (ausgegraut). Standardmäßig alle.
       </Text>
+      {error ? (
+        <HelperText type="error" visible style={styles.error}>
+          {error}
+        </HelperText>
+      ) : null}
       <View style={styles.chips}>
         {group.participants.map((p) => (
           <Chip
@@ -189,7 +212,8 @@ export default function EditExpenseScreen() {
       <Button
         mode="contained"
         onPress={save}
-        disabled={!isValid}
+        disabled={!isValid || loading}
+        loading={loading}
         style={styles.save}
       >
         Änderungen speichern
@@ -212,6 +236,7 @@ const styles = StyleSheet.create({
   segmentedScrollContent: { flexGrow: 0 },
   segmented: { marginBottom: 0 },
   hint: { marginTop: 4, marginBottom: 8, color: appColors.accent },
+  error: { marginBottom: 8 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { marginBottom: 4 },
   chipBg: { backgroundColor: appColors.background },

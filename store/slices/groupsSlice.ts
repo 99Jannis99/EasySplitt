@@ -6,11 +6,14 @@ const STORAGE_KEY = "@splitt/groups";
 export interface GroupsState {
   groups: Group[];
   expenses: Expense[];
+  /** true während Gruppen/Expenses vom Server geladen werden */
+  groupsLoading: boolean;
 }
 
 const initialState: GroupsState = {
   groups: [],
   expenses: [],
+  groupsLoading: false,
 };
 
 function generateId() {
@@ -22,10 +25,21 @@ const groupsSlice = createSlice({
   initialState,
   reducers: {
     setStateFromStorage(
-      _,
+      state,
       action: PayloadAction<{ groups: Group[]; expenses: Expense[] }>
     ) {
-      return action.payload;
+      state.groups = action.payload.groups;
+      state.expenses = action.payload.expenses;
+      state.groupsLoading = false;
+    },
+    setGroupsLoading(state, action: PayloadAction<boolean>) {
+      state.groupsLoading = action.payload;
+    },
+    addExpenseFromServer(state, action: PayloadAction<Expense>) {
+      state.expenses.push(action.payload);
+    },
+    addGroupFromServer(state, action: PayloadAction<Group>) {
+      state.groups.push(action.payload);
     },
     addGroup(state, action: PayloadAction<{ name: string; participants: Participant[] }>) {
       const id = generateId();
@@ -103,6 +117,9 @@ const groupsSlice = createSlice({
 
 export const {
   setStateFromStorage,
+  setGroupsLoading,
+  addExpenseFromServer,
+  addGroupFromServer,
   addGroup,
   updateGroup,
   removeGroup,

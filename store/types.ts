@@ -6,6 +6,8 @@ export interface Participant {
 export interface Group {
   id: string;
   name: string;
+  /** UUID des Erstellers – nur Erstellende dürfen die Gruppe bearbeiten/Mitglieder hinzufügen */
+  createdBy?: string;
   participants: Participant[];
 }
 

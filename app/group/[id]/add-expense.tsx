@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { TextInput, Button, SegmentedButtons, Text, Chip } from "react-native-paper";
+import { TextInput, Button, SegmentedButtons, Text, Chip, HelperText } from "react-native-paper";
 import type { RootState } from "../../../store";
-import { addExpense } from "../../../store/slices/groupsSlice";
+import { addExpenseFromServer } from "../../../store/slices/groupsSlice";
+import { useAuth } from "../../../context/AuthContext";
+import { createExpense } from "../../../lib/supabaseApi";
 import { appColors } from "../../../theme";
 
 export default function AddExpenseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const dispatch = useDispatch();
+  const { session } = useAuth();
   const group = useSelector((s: RootState) =>
     s.groups.groups.find((g) => g.id === id)
   );
@@ -19,6 +22,8 @@ export default function AddExpenseScreen() {
   const [amountStr, setAmountStr] = useState("");
   const [payerId, setPayerId] = useState("");
   const [splitBetweenIds, setSplitBetweenIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!group) {
     return (
@@ -47,20 +52,31 @@ export default function AddExpenseScreen() {
     }
   };
 
-  const save = () => {
+  const save = async () => {
     const amount = parseFloat(amountStr.replace(",", "."));
-    if (!title.trim() || isNaN(amount) || amount <= 0 || !payerId) return;
-    dispatch(
-      addExpense({
-        groupId: id,
-        title: title.trim(),
-        description: description.trim(),
-        amount,
-        payerId,
-        splitBetweenIds,
-      })
-    );
-    router.back();
+    if (!title.trim() || isNaN(amount) || amount <= 0 || !payerId || !id || !session?.user?.id || !group) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const expense = await createExpense(
+        id,
+        session.user.id,
+        {
+          title: title.trim(),
+          description: description.trim(),
+          amount,
+          payerId,
+          splitBetweenIds,
+        },
+        group.participants.map((p) => p.id)
+      );
+      dispatch(addExpenseFromServer(expense));
+      router.back();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ausgabe konnte nicht gespeichert werden.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isValid =
@@ -141,6 +157,11 @@ export default function AddExpenseScreen() {
       <Text variant="bodySmall" style={styles.hint}>
         Tippen zum Abwählen (ausgegraut). Standardmäßig alle.
       </Text>
+      {error ? (
+        <HelperText type="error" visible style={styles.error}>
+          {error}
+        </HelperText>
+      ) : null}
       <View style={styles.chips}>
         {group.participants.map((p) => (
           <Chip
@@ -163,7 +184,8 @@ export default function AddExpenseScreen() {
       <Button
         mode="contained"
         onPress={save}
-        disabled={!isValid}
+        disabled={!isValid || loading}
+        loading={loading}
         style={styles.save}
       >
         Ausgabe speichern
@@ -186,6 +208,7 @@ const styles = StyleSheet.create({
   segmentedScrollContent: { flexGrow: 0 },
   segmented: { marginBottom: 0 },
   hint: { marginTop: 4, marginBottom: 8, color: appColors.accent },
+  error: { marginBottom: 8 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { marginBottom: 4 },
   chipBg: { backgroundColor: appColors.background },

@@ -1,14 +1,14 @@
-import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { View, StyleSheet, ScrollView, Pressable } from "react-native";
-import { useSelector } from "react-redux";
-import { Text, Card, IconButton, Surface, Chip, Icon } from "react-native-paper";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Card, Chip, Icon, IconButton, Surface, Text } from "react-native-paper";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteExpense } from "../../../lib/supabaseApi";
 import type { RootState } from "../../../store";
+import { selectExpensesForGroup, selectGroupById } from "../../../store/selectors";
 import { removeExpense } from "../../../store/slices/groupsSlice";
-import { selectGroupById, selectExpensesForGroup } from "../../../store/selectors";
-import { useDispatch } from "react-redux";
+import { appColors } from "../../../theme";
 import { getBalances, getDebts } from "../../../utils/settlement";
-import { appColors, appTheme } from "../../../theme";
 
 const headerButtonColor = "#000000";
 
@@ -138,7 +138,12 @@ export default function GroupDetailScreen() {
                         <IconButton
                           {...props}
                           icon="delete-outline"
-                          onPress={() => dispatch(removeExpense(e.id))}
+                          onPress={async () => {
+                            try {
+                              await deleteExpense(e.id);
+                              dispatch(removeExpense(e.id));
+                            } catch (_) {}
+                          }}
                         />
                       </View>
                     )}
@@ -168,6 +173,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-end",
+    width: 35,
+    height: 35,
   },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   section: { padding: 16, marginHorizontal: 16, marginVertical: 8, borderRadius: 12 },

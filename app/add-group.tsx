@@ -2,39 +2,41 @@ import { useState } from "react";
 import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { useDispatch } from "react-redux";
-import { TextInput, Button, Chip, Text } from "react-native-paper";
-import { addGroup } from "../store/slices/groupsSlice";
-import type { Participant } from "../store/types";
-import { appColors, appTheme } from "../theme";
+import { TextInput, Button, Text, HelperText } from "react-native-paper";
+import { setStateFromStorage, addGroupFromServer } from "../store/slices/groupsSlice";
+import { useAuth } from "../context/AuthContext";
+import { createGroup, fetchGroupsAndExpenses } from "../lib/supabaseApi";
+import { appColors } from "../theme";
 
 export default function AddGroupScreen() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { session } = useAuth();
   const [name, setName] = useState("");
-  const [currentName, setCurrentName] = useState("");
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const addParticipant = () => {
-    const trimmed = currentName.trim();
-    if (!trimmed) return;
-    if (participants.some((p) => p.name === trimmed)) return;
-    setParticipants((prev) => [
-      ...prev,
-      { id: `p-${Date.now()}-${Math.random().toString(36).slice(2)}`, name: trimmed },
-    ]);
-    setCurrentName("");
-  };
-
-  const removeParticipant = (id: string) => {
-    setParticipants((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const save = () => {
+  const save = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    if (participants.length === 0) return;
-    dispatch(addGroup({ name: trimmed, participants }));
-    router.back();
+    if (!trimmed || !session?.user?.id) {
+      if (!session?.user?.id) setError("Nicht angemeldet – bitte erneut anmelden.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const newGroup = await createGroup(trimmed, session.user.id);
+      dispatch(addGroupFromServer(newGroup));
+      router.back();
+    } catch (e) {
+      const msg =
+        (e && typeof e === "object" && "message" in e && String((e as { message: unknown }).message)) ||
+        (e instanceof Error ? e.message : "Gruppe konnte nicht erstellt werden.");
+      console.error("[AddGroup] createGroup/fetchGroups error:", e);
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputTheme = {
@@ -48,6 +50,9 @@ export default function AddGroupScreen() {
 
   return (
     <View style={styles.container}>
+      <Text variant="bodyMedium" style={styles.hint}>
+        Du wirst automatisch als Besitzer der Gruppe angelegt. Weitere Mitglieder kannst du in der Gruppenbearbeitung per E-Mail einladen.
+      </Text>
       <TextInput
         label="Gruppenname"
         value={name}
@@ -58,40 +63,19 @@ export default function AddGroupScreen() {
         outlineColor={appColors.accent}
         activeOutlineColor={appColors.primary}
       />
-      <Text variant="labelLarge" style={styles.label}>
-        Teilnehmer (nur Namen)
-      </Text>
-      <View style={styles.row}>
-        <TextInput
-          label="Name"
-          value={currentName}
-          onChangeText={setCurrentName}
-          mode="outlined"
-          style={styles.inputFlex}
-          theme={inputTheme}
-          outlineColor={appColors.accent}
-          activeOutlineColor={appColors.primary}
-          onSubmitEditing={addParticipant}
-          returnKeyType="done"
-        />
-        <Button mode="contained" onPress={addParticipant} style={styles.addBtn}>
-          Hinzufügen
-        </Button>
-      </View>
-      <View style={styles.chips}>
-        {participants.map((p) => (
-          <Chip key={p.id} onClose={() => removeParticipant(p.id)} style={[styles.chip, styles.chipBg]}>
-            {p.name}
-          </Chip>
-        ))}
-      </View>
+      {error ? (
+        <HelperText type="error" visible>
+          {error}
+        </HelperText>
+      ) : null}
       <Button
         mode="contained"
         onPress={save}
-        disabled={!name.trim() || participants.length === 0}
+        disabled={!name.trim() || loading}
+        loading={loading}
         style={styles.save}
       >
-        Gruppe speichern
+        Gruppe erstellen
       </Button>
     </View>
   );
@@ -99,17 +83,7 @@ export default function AddGroupScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: appColors.background },
+  hint: { marginBottom: 16, color: appColors.accent },
   input: { marginBottom: 16, backgroundColor: appColors.background },
-  inputFlex: { flex: 1, marginRight: 8, marginBottom: 0, backgroundColor: appColors.background },
-  label: { marginTop: 8, marginBottom: 4 },
-  row: { flexDirection: "row", alignItems: "center" },
-  addBtn: { minWidth: 100 },
-  chips: { flexDirection: "row", flexWrap: "wrap", marginTop: 12, gap: 8 },
-  chip: { marginRight: 8, marginBottom: 8 },
-  chipBg: {
-    backgroundColor: appColors.accent,
-    borderWidth: 1,
-    borderColor: appColors.accent,
-  },
   save: { marginTop: 24 },
 });
