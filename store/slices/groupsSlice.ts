@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Group, Expense, Participant } from "../types";
 
-const STORAGE_KEY = "@splitt/groups";
+const STORAGE_KEY = "@fluxshare/groups";
 
 export interface GroupsState {
   groups: Group[];

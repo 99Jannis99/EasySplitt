@@ -25,6 +25,23 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## APK bauen (EAS Build)
+
+Preview-APK für Geräte (kein Store, keine Dev-Build):
+
+```bash
+npm install -g eas-cli
+eas login
+eas build --platform android --profile preview
+```
+
+**Wichtig:** Damit die App in der APK deinen Backend (Supabase) erreicht, müssen die Umgebungsvariablen beim Build gesetzt sein. Im [Expo Dashboard](https://expo.dev) → dein Projekt → **Secrets** anlegen:
+
+- `EXPO_PUBLIC_SUPABASE_URL` (z. B. `https://xxx.supabase.co`)
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY` (Anon/Public Key aus Supabase)
+
+Ohne diese Secrets baut die APK zwar, aber Login und Datenabfragen schlagen fehl.
+
 ## Get a fresh project
 
 When you're ready, run:

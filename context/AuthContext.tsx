@@ -17,10 +17,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: s } }) => {
+        setSession(s);
+        setLoading(false);
+      })
+      .catch(() => {
+        setSession(null);
+        setLoading(false);
+      });
 
     const {
       data: { subscription },

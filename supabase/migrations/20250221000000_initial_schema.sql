@@ -1,5 +1,5 @@
 -- =============================================================================
--- Splitt – Initiales Supabase-Schema
+-- Fluxshare – Initiales Supabase-Schema
 -- In Supabase: SQL Editor → New query → Einfügen & Run
 -- =============================================================================
 

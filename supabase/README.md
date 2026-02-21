@@ -1,4 +1,4 @@
-# Supabase-Setup für Splitt
+# Supabase-Setup für Fluxshare
 
 ## Schema ausführen
 

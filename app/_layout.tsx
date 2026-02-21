@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, ActivityIndicator, StyleSheet, Text } from "react-native";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { Provider as ReduxProvider } from "react-redux";
 import { PaperProvider } from "react-native-paper";
 import { store } from "../store";
@@ -8,6 +9,38 @@ import { setStateFromStorage, setGroupsLoading } from "../store/slices/groupsSli
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { fetchGroupsAndExpenses } from "../lib/supabaseApi";
 import { appTheme, appColors } from "../theme";
+
+// Splash so lange anzeigen, bis wir explizit ausblenden (verhindert Flackern / „hängen“)
+SplashScreen.preventAutoHideAsync();
+
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  state = { hasError: false, error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch() {
+    SplashScreen.hideAsync();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Etwas ist schiefgelaufen</Text>
+          <Text style={styles.errorText}>
+            {this.state.error?.message ?? "Unbekannter Fehler"}
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function RootStack() {
   const { session, loading } = useAuth();
@@ -30,6 +63,15 @@ function RootStack() {
   useEffect(() => {
     if (!session) loaded.current = false;
   }, [session]);
+
+  // Splash ausblenden, sobald Auth-Zustand bekannt ist (erster sinnvoller Frame)
+  useEffect(() => {
+    if (loading) return;
+    const t = setTimeout(() => {
+      SplashScreen.hideAsync();
+    }, 100);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   if (loading) {
     return (
@@ -60,16 +102,21 @@ function RootStack() {
 
 const styles = StyleSheet.create({
   loading: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: appColors.background },
+  errorContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 24, backgroundColor: appColors.background },
+  errorTitle: { fontSize: 18, fontWeight: "600", marginBottom: 8 },
+  errorText: { fontSize: 14, color: "#666", textAlign: "center" },
 });
 
 export default function Layout() {
   return (
-    <AuthProvider>
-      <ReduxProvider store={store}>
-        <PaperProvider theme={appTheme}>
-          <RootStack />
-        </PaperProvider>
-      </ReduxProvider>
-    </AuthProvider>
+    <AppErrorBoundary>
+      <AuthProvider>
+        <ReduxProvider store={store}>
+          <PaperProvider theme={appTheme}>
+            <RootStack />
+          </PaperProvider>
+        </ReduxProvider>
+      </AuthProvider>
+    </AppErrorBoundary>
   );
 }
