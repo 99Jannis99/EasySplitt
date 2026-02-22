@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as SystemUI from "expo-system-ui";
 import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
@@ -89,6 +90,7 @@ function RootStack() {
         headerStyle: { backgroundColor: appTheme.colors.primaryContainer },
         headerTintColor: appTheme.colors.onPrimaryContainer,
         ...(Platform.OS === "android" && {
+          animation: "fade_from_bottom",
           header: (props: unknown) => <CustomHeader {...(props as React.ComponentProps<typeof CustomHeader>)} />,
         }),
       }}
@@ -99,8 +101,8 @@ function RootStack() {
       <Stack.Screen name="add-group" options={{ title: "Neue Gruppe" }} />
       <Stack.Screen name="edit-group" options={{ title: "Gruppe bearbeiten" }} />
       <Stack.Screen name="group/[id]/index" options={{ title: "Gruppe" }} />
-      <Stack.Screen name="group/[id]/add-expense" options={{ title: "Ausgabe hinzufügen" }} />
-      <Stack.Screen name="group/[id]/edit-expense" options={{ title: "Ausgabe bearbeiten" }} />
+      <Stack.Screen name="group/[id]/add-expense" options={{ title: "hinzufügen" }} />
+      <Stack.Screen name="group/[id]/edit-expense" options={{ title: "bearbeiten" }} />
     </Stack>
   );
 }

@@ -1,15 +1,18 @@
 import { getHeaderTitle } from "@react-navigation/elements";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { appTheme } from "../theme";
-import { GlassHeaderButton } from "./GlassHeaderButton";
+import { GlassHeaderButton, HeaderEnterTriggerContext } from "./GlassHeaderButton";
 
 const HEADER_BAR_HEIGHT = 64;
 /** Ab dieser Titel-Länge Back-Button nur als Icon (ohne Text), damit mehr Platz für den Titel ist. */
 const TITLE_LONG_THRESHOLD = 20;
+/** Back-Button-Text (z. B. „Zurück“, „Gruppen“) nur anzeigen, wenn so kurz; sonst nur Icon. */
+const BACK_LABEL_MAX_LENGTH = 12;
 
 type HeaderProps = {
   options: { title?: string; headerRight?: (props: unknown) => React.ReactNode };
@@ -50,9 +53,20 @@ export function CustomHeader({ options, route, back }: HeaderProps) {
   const onRightLayout = (e: LayoutChangeEvent) =>
     setRightWidth(e.nativeEvent.layout.width);
 
-  const showBackLabel = back?.title && title.length <= TITLE_LONG_THRESHOLD;
+  const showBackLabel =
+    back?.title &&
+    title.length <= TITLE_LONG_THRESHOLD &&
+    back.title.length <= BACK_LABEL_MAX_LENGTH;
+
+  const [enterTrigger, setEnterTrigger] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setEnterTrigger((t) => t + 1);
+    }, [])
+  );
 
   return (
+    <HeaderEnterTriggerContext.Provider value={{ enterTrigger }}>
     <View style={[styles.outer, { paddingTop: insets.top }]}>
       <View style={styles.bar} onLayout={onBarLayout}>
         <View style={styles.left} onLayout={onLeftLayout}>
@@ -107,6 +121,7 @@ export function CustomHeader({ options, route, back }: HeaderProps) {
         </View>
       </View>
     </View>
+    </HeaderEnterTriggerContext.Provider>
   );
 }
 
