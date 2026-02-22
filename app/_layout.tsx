@@ -1,14 +1,15 @@
-import React, { useEffect, useRef } from "react";
-import { View, ActivityIndicator, StyleSheet, Text } from "react-native";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Provider as ReduxProvider } from "react-redux";
+import React, { useEffect, useRef } from "react";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
-import { store } from "../store";
-import { setStateFromStorage, setGroupsLoading } from "../store/slices/groupsSlice";
+import { Provider as ReduxProvider } from "react-redux";
+import { CustomHeader } from "../components/CustomHeader";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { fetchGroupsAndExpenses } from "../lib/supabaseApi";
-import { appTheme, appColors } from "../theme";
+import { store } from "../store";
+import { setGroupsLoading, setStateFromStorage } from "../store/slices/groupsSlice";
+import { appColors, appTheme } from "../theme";
 
 // Splash so lange anzeigen, bis wir explizit ausblenden (verhindert Flackern / „hängen“)
 SplashScreen.preventAutoHideAsync();
@@ -84,8 +85,12 @@ function RootStack() {
   return (
     <Stack
       screenOptions={{
+        headerTitleAlign: "center",
         headerStyle: { backgroundColor: appTheme.colors.primaryContainer },
         headerTintColor: appTheme.colors.onPrimaryContainer,
+        ...(Platform.OS === "android" && {
+          header: (props: unknown) => <CustomHeader {...(props as React.ComponentProps<typeof CustomHeader>)} />,
+        }),
       }}
     >
       <Stack.Screen name="index" options={{ title: "Gruppen" }} />

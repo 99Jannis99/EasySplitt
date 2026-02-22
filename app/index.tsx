@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useNavigation } from "expo-router";
-import { View, StyleSheet, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform } from "react-native";
 import { useSelector } from "react-redux";
 import { List, Text, Card, IconButton, Icon } from "react-native-paper";
 import type { RootState } from "../store";
@@ -9,6 +9,8 @@ import { useDispatch } from "react-redux";
 import { useAuth } from "../context/AuthContext";
 import { deleteGroup } from "../lib/supabaseApi";
 import { appColors } from "../theme";
+import { ScreenContent } from "../components/ScreenContent";
+import { GlassHeaderButton } from "../components/GlassHeaderButton";
 
 const headerButtonColor = "#000000";
 
@@ -19,6 +21,7 @@ export default function GroupsScreen() {
   const { session, loading, signOut } = useAuth();
   const groups = useSelector((s: RootState) => s.groups.groups);
   const groupsLoading = useSelector((s: RootState) => s.groups.groupsLoading);
+  const [headerPillPressed, setHeaderPillPressed] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -31,24 +34,51 @@ export default function GroupsScreen() {
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerButtons}>
-          <Pressable
-            onPress={() => router.push("/add-group")}
-            style={styles.headerButton}
-            android_ripple={null}
-          >
-            <Icon source="plus" size={24} color={headerButtonColor} />
-          </Pressable>
-          <Pressable
-            onPress={() => signOut().then(() => router.replace("/login"))}
-            style={styles.headerButton}
-            android_ripple={null}
-          >
-            <Icon source="logout" size={24} color={headerButtonColor} />
-          </Pressable>
+          {Platform.OS === "android" ? (
+            <GlassHeaderButton variant="pill" pressed={headerPillPressed}>
+              <View style={styles.headerPillInner}>
+                <Pressable
+                  onPress={() => router.push("/add-group")}
+                  onPressIn={() => setHeaderPillPressed(true)}
+                  onPressOut={() => setHeaderPillPressed(false)}
+                  style={styles.headerButton}
+                  android_ripple={null}
+                >
+                  <Icon source="plus" size={24} color={headerButtonColor} />
+                </Pressable>
+                <Pressable
+                  onPress={() => signOut().then(() => router.replace("/login"))}
+                  onPressIn={() => setHeaderPillPressed(true)}
+                  onPressOut={() => setHeaderPillPressed(false)}
+                  style={styles.headerButton}
+                  android_ripple={null}
+                >
+                  <Icon source="logout" size={24} color={headerButtonColor} />
+                </Pressable>
+              </View>
+            </GlassHeaderButton>
+          ) : (
+            <>
+              <Pressable
+                onPress={() => router.push("/add-group")}
+                style={styles.headerButton}
+                android_ripple={null}
+              >
+                <Icon source="plus" size={24} color={headerButtonColor} />
+              </Pressable>
+              <Pressable
+                onPress={() => signOut().then(() => router.replace("/login"))}
+                style={styles.headerButton}
+                android_ripple={null}
+              >
+                <Icon source="logout" size={24} color={headerButtonColor} />
+              </Pressable>
+            </>
+          )}
         </View>
       ),
     });
-  }, [navigation, router, signOut]);
+  }, [navigation, router, signOut, headerPillPressed]);
 
   if (session && groupsLoading) {
     return (
@@ -125,6 +155,7 @@ const styles = StyleSheet.create({
   cardBg: { backgroundColor: appColors.background },
   cardActions: { flexDirection: "row" },
   headerButtons: { flexDirection: "row", alignItems: "center" },
+  headerPillInner: { flexDirection: "row", alignItems: "center", gap: 8 },
   headerButton: {
     width: 35,
     height: 35,

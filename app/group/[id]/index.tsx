@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useEffect } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View, Platform } from "react-native";
 import { Card, Chip, Icon, IconButton, Surface, Text } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteExpense } from "../../../lib/supabaseApi";
@@ -9,6 +9,8 @@ import { selectExpensesForGroup, selectGroupById } from "../../../store/selector
 import { removeExpense } from "../../../store/slices/groupsSlice";
 import { appColors } from "../../../theme";
 import { getBalances, getDebts } from "../../../utils/settlement";
+import { ScreenContent } from "../../../components/ScreenContent";
+import { GlassHeaderButton } from "../../../components/GlassHeaderButton";
 
 const headerButtonColor = "#000000";
 
@@ -20,21 +22,39 @@ export default function GroupDetailScreen() {
   const expenses = useSelector((s: RootState) => selectExpensesForGroup(s, id ?? ""));
 
   const navigation = useNavigation();
+  const [headerPlusPressed, setHeaderPlusPressed] = useState(false);
+
   useEffect(() => {
     if (!group || !id) return;
     navigation.setOptions({
       title: group.name,
       headerRight: () => (
-        <Pressable
-          onPress={() => router.push(`/group/${id}/add-expense`)}
-          style={styles.headerButton}
-          android_ripple={null}
-        >
-          <Icon source="plus" size={24} color={headerButtonColor} />
-        </Pressable>
+        <View style={styles.headerButtons}>
+          {Platform.OS === "android" ? (
+            <GlassHeaderButton variant="circle" pressed={headerPlusPressed}>
+              <Pressable
+                onPress={() => router.push(`/group/${id}/add-expense`)}
+                onPressIn={() => setHeaderPlusPressed(true)}
+                onPressOut={() => setHeaderPlusPressed(false)}
+                style={styles.headerButton}
+                android_ripple={null}
+              >
+                <Icon source="plus" size={28} color={headerButtonColor} />
+              </Pressable>
+            </GlassHeaderButton>
+          ) : (
+            <Pressable
+              onPress={() => router.push(`/group/${id}/add-expense`)}
+              style={styles.headerButton}
+              android_ripple={null}
+            >
+              <Icon source="plus" size={28} color={headerButtonColor} />
+            </Pressable>
+          )}
+        </View>
       ),
     });
-  }, [group, id, navigation, router]);
+  }, [group, id, navigation, router, headerPlusPressed]);
 
   if (!group) {
     return (
@@ -168,13 +188,13 @@ export default function GroupDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: appColors.background },
   scroll: { flex: 1 },
+  headerButtons: { flexDirection: "row", alignItems: "center" },
   headerButton: {
+    width: 35,
+    height: 35,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "flex-end",
-    width: 35,
-    height: 35,
   },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   section: { padding: 16, marginHorizontal: 16, marginVertical: 8, borderRadius: 12 },
