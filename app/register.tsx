@@ -13,6 +13,8 @@ export default function RegisterScreen() {
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
+  const [sentTo, setSentTo] = useState("");
 
   useEffect(() => {
     if (session) router.replace("/");
@@ -36,7 +38,8 @@ export default function RegisterScreen() {
       setError(err.message || "Registrierung fehlgeschlagen.");
       return;
     }
-    router.replace("/");
+    setSentTo(trimmedEmail);
+    setEmailSent(true);
   };
 
   const inputTheme = {
@@ -47,6 +50,45 @@ export default function RegisterScreen() {
       background: appColors.background,
     },
   };
+
+  if (emailSent) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.inner}>
+          <View style={styles.iconWrapper}>
+            <Text style={styles.icon}>✉️</Text>
+          </View>
+          <Text variant="headlineSmall" style={styles.confirmTitle}>
+            E-Mail bestätigen
+          </Text>
+          <Text variant="bodyMedium" style={styles.confirmText}>
+            Wir haben eine Bestätigungs-E-Mail an
+          </Text>
+          <Text variant="bodyMedium" style={styles.confirmEmail}>
+            {sentTo}
+          </Text>
+          <Text variant="bodyMedium" style={styles.confirmText}>
+            gesendet. Bitte öffne die E-Mail und klicke auf den Bestätigungslink,
+            um dein Konto zu aktivieren.
+          </Text>
+          <Button
+            mode="contained"
+            onPress={() => router.replace("/login")}
+            style={styles.button}
+          >
+            Zum Login
+          </Button>
+          <Button
+            mode="text"
+            onPress={() => setEmailSent(false)}
+            style={styles.link}
+          >
+            Andere E-Mail verwenden
+          </Button>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -130,4 +172,9 @@ const styles = StyleSheet.create({
   input: { marginBottom: 16, backgroundColor: appColors.background },
   button: { marginTop: 8 },
   link: { marginTop: 16 },
+  iconWrapper: { alignItems: "center", marginBottom: 20 },
+  icon: { fontSize: 56 },
+  confirmTitle: { marginBottom: 16, color: appColors.primary, textAlign: "center" },
+  confirmText: { color: appColors.accent, textAlign: "center", marginBottom: 4 },
+  confirmEmail: { fontWeight: "700", color: appColors.primary, textAlign: "center", marginBottom: 4 },
 });

@@ -278,3 +278,47 @@ export async function deleteExpense(expenseId: string): Promise<void> {
   const { error } = await supabase.from("expenses").delete().eq("id", expenseId);
   if (error) throw error;
 }
+
+export async function fetchExpenseById(expenseId: string): Promise<Expense | null> {
+  const { data: exp, error } = await supabase
+    .from("expenses")
+    .select("id, group_id, title, description, amount, payer_id")
+    .eq("id", expenseId)
+    .single();
+
+  if (error || !exp) return null;
+
+  const { data: splitsRows } = await supabase
+    .from("expense_splits")
+    .select("user_id")
+    .eq("expense_id", expenseId);
+
+  return {
+    id: exp.id,
+    groupId: exp.group_id,
+    title: exp.title,
+    description: exp.description ?? "",
+    amount: Number(exp.amount),
+    payerId: exp.payer_id,
+    splitBetweenIds: (splitsRows ?? []).map((s: { user_id: string }) => s.user_id),
+  };
+}
+
+export async function fetchGroupById(groupId: string): Promise<Group | null> {
+  const { data: group, error } = await supabase
+    .from("groups")
+    .select("id, name, created_by")
+    .eq("id", groupId)
+    .single();
+
+  if (error || !group) return null;
+
+  const participants = await fetchGroupMembers(groupId);
+
+  return {
+    id: group.id,
+    name: group.name,
+    createdBy: group.created_by,
+    participants,
+  };
+}

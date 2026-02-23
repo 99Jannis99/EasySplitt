@@ -7,6 +7,7 @@ import { PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
 import { CustomHeader } from "../components/CustomHeader";
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { useRealtimeSync } from "../hooks/useRealtimeSync";
 import { fetchGroupsAndExpenses } from "../lib/supabaseApi";
 import { store } from "../store";
 import { setGroupsLoading, setStateFromStorage } from "../store/slices/groupsSlice";
@@ -48,6 +49,8 @@ class AppErrorBoundary extends React.Component<
 function RootStack() {
   const { session, loading } = useAuth();
   const loaded = useRef(false);
+
+  useRealtimeSync(session?.user?.id);
 
   useEffect(() => {
     if (!session?.user?.id || loaded.current) return;

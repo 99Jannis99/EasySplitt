@@ -36,10 +36,12 @@ const groupsSlice = createSlice({
       state.groupsLoading = action.payload;
     },
     addExpenseFromServer(state, action: PayloadAction<Expense>) {
-      state.expenses.push(action.payload);
+      const already = state.expenses.some((e) => e.id === action.payload.id);
+      if (!already) state.expenses.push(action.payload);
     },
     addGroupFromServer(state, action: PayloadAction<Group>) {
-      state.groups.push(action.payload);
+      const already = state.groups.some((g) => g.id === action.payload.id);
+      if (!already) state.groups.push(action.payload);
     },
     addGroup(state, action: PayloadAction<{ name: string; participants: Participant[] }>) {
       const id = generateId();
