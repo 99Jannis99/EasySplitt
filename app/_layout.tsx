@@ -99,6 +99,7 @@ function RootStack() {
       <Stack.Screen name="login" options={{ title: "Anmelden" }} />
       <Stack.Screen name="register" options={{ title: "Registrieren" }} />
       <Stack.Screen name="add-group" options={{ title: "Neue Gruppe" }} />
+      <Stack.Screen name="add-group-members" options={{ title: "Mitglieder hinzufügen" }} />
       <Stack.Screen name="edit-group" options={{ title: "Gruppe bearbeiten" }} />
       <Stack.Screen name="group/[id]/index" options={{ title: "Gruppe" }} />
       <Stack.Screen name="group/[id]/add-expense" options={{ title: "hinzufügen" }} />

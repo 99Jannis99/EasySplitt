@@ -27,7 +27,7 @@ export default function AddGroupScreen() {
     try {
       const newGroup = await createGroup(trimmed, session.user.id);
       dispatch(addGroupFromServer(newGroup));
-      router.back();
+      router.replace(`/add-group-members?groupId=${newGroup.id}`);
     } catch (e) {
       const msg =
         (e && typeof e === "object" && "message" in e && String((e as { message: unknown }).message)) ||
@@ -50,9 +50,6 @@ export default function AddGroupScreen() {
 
   return (
     <View style={styles.container}>
-      <Text variant="bodyMedium" style={styles.hint}>
-        Du wirst automatisch als Besitzer der Gruppe angelegt. Weitere Mitglieder kannst du in der Gruppenbearbeitung per E-Mail einladen.
-      </Text>
       <TextInput
         label="Gruppenname"
         value={name}
@@ -75,7 +72,7 @@ export default function AddGroupScreen() {
         loading={loading}
         style={styles.save}
       >
-        Gruppe erstellen
+        Weiter
       </Button>
     </View>
   );
@@ -83,7 +80,6 @@ export default function AddGroupScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: appColors.background },
-  hint: { marginBottom: 16, color: appColors.accent },
   input: { marginBottom: 16, backgroundColor: appColors.background },
   save: { marginTop: 24 },
 });
