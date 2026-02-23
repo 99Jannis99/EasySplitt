@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text, HelperText } from "react-native-paper";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useAuth } from "../context/AuthContext";
 import { appColors } from "../theme";
 
@@ -44,62 +45,64 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <View style={styles.inner}>
-        <Text variant="headlineSmall" style={styles.title}>
-          Anmelden
-        </Text>
-        <TextInput
-          label="E-Mail"
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-          style={styles.input}
-          theme={inputTheme}
-          outlineColor={appColors.accent}
-          activeOutlineColor={appColors.primary}
-        />
-        <TextInput
-          label="Passwort"
-          value={password}
-          onChangeText={setPassword}
-          mode="outlined"
-          secureTextEntry
-          autoComplete="password"
-          style={styles.input}
-          theme={inputTheme}
-          outlineColor={appColors.accent}
-          activeOutlineColor={appColors.primary}
-        />
-        {error ? (
-          <HelperText type="error" visible>
-            {error}
-          </HelperText>
-        ) : null}
-        <Button
-          mode="contained"
-          onPress={handleLogin}
-          loading={loading}
-          disabled={loading}
-          style={styles.button}
-        >
-          Anmelden
-        </Button>
-        <Button
-          mode="text"
-          onPress={() => router.push("/register")}
-          style={styles.link}
-        >
-          Noch kein Konto? Registrieren
-        </Button>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.inner}>
+          <Text variant="headlineSmall" style={styles.title}>
+            Anmelden
+          </Text>
+          <TextInput
+            label="E-Mail"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            style={styles.input}
+            theme={inputTheme}
+            outlineColor={appColors.accent}
+            activeOutlineColor={appColors.primary}
+          />
+          <TextInput
+            label="Passwort"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            secureTextEntry
+            autoComplete="password"
+            style={styles.input}
+            theme={inputTheme}
+            outlineColor={appColors.accent}
+            activeOutlineColor={appColors.primary}
+          />
+          {error ? (
+            <HelperText type="error" visible>
+              {error}
+            </HelperText>
+          ) : null}
+          <Button
+            mode="contained"
+            onPress={handleLogin}
+            loading={loading}
+            disabled={loading}
+            style={styles.button}
+          >
+            Anmelden
+          </Button>
+          <Button
+            mode="text"
+            onPress={() => router.push("/register")}
+            style={styles.link}
+          >
+            Noch kein Konto? Registrieren
+          </Button>
+        </View>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -107,6 +110,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: appColors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
   },
   inner: { padding: 24 },

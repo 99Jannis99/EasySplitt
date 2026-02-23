@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useDispatch, useSelector } from "react-redux";
 import { TextInput, Button, Chip, Text, HelperText } from "react-native-paper";
 import { updateGroup } from "../store/slices/groupsSlice";
@@ -101,7 +102,12 @@ export default function EditGroupScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <TextInput
         label="Gruppenname"
         value={name}
@@ -211,7 +217,7 @@ export default function EditGroupScreen() {
       >
         Einladen
       </Button>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

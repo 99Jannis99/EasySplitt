@@ -3,9 +3,10 @@ import { useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { useDispatch } from "react-redux";
 import { TextInput, Button, Text, HelperText } from "react-native-paper";
-import { setStateFromStorage, addGroupFromServer } from "../store/slices/groupsSlice";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { addGroupFromServer } from "../store/slices/groupsSlice";
 import { useAuth } from "../context/AuthContext";
-import { createGroup, fetchGroupsAndExpenses } from "../lib/supabaseApi";
+import { createGroup } from "../lib/supabaseApi";
 import { appColors } from "../theme";
 
 export default function AddGroupScreen() {
@@ -49,37 +50,46 @@ export default function AddGroupScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        label="Gruppenname"
-        value={name}
-        onChangeText={setName}
-        mode="outlined"
-        style={styles.input}
-        theme={inputTheme}
-        outlineColor={appColors.accent}
-        activeOutlineColor={appColors.primary}
-      />
-      {error ? (
-        <HelperText type="error" visible>
-          {error}
-        </HelperText>
-      ) : null}
-      <Button
-        mode="contained"
-        onPress={save}
-        disabled={!name.trim() || loading}
-        loading={loading}
-        style={styles.save}
-      >
-        Weiter
-      </Button>
-    </View>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.inner}>
+        <TextInput
+          label="Gruppenname"
+          value={name}
+          onChangeText={setName}
+          mode="outlined"
+          style={styles.input}
+          theme={inputTheme}
+          outlineColor={appColors.accent}
+          activeOutlineColor={appColors.primary}
+        />
+        {error ? (
+          <HelperText type="error" visible>
+            {error}
+          </HelperText>
+        ) : null}
+        <Button
+          mode="contained"
+          onPress={save}
+          disabled={!name.trim() || loading}
+          loading={loading}
+          style={styles.save}
+        >
+          Weiter
+        </Button>
+      </View>
+    </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: appColors.background },
+  container: { flex: 1, backgroundColor: appColors.background },
+  scrollContent: { flexGrow: 1, justifyContent: "center" },
+  inner: { padding: 16 },
   input: { marginBottom: 16, backgroundColor: appColors.background },
   save: { marginTop: 24 },
 });

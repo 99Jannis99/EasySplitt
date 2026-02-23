@@ -1,7 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Button, Chip, HelperText, Text, TextInput } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { addVirtualMember, deleteGroup, fetchGroupMembers, inviteToGroup } from "../lib/supabaseApi";
@@ -108,7 +109,12 @@ export default function AddGroupMembersScreen() {
   const canFinish = addedCount >= 1;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAwareScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       {/* Aktuelle Mitglieder */}
       <Text variant="titleMedium" style={styles.sectionTitle}>
         Mitglieder
@@ -211,7 +217,7 @@ export default function AddGroupMembersScreen() {
       >
         Fertig
       </Button>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

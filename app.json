@@ -14,7 +14,8 @@
         "dark": "./assets/images/ios-dark.png",
         "tinted": "./assets/images/ios-tinted.png"
       },
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jannisroloff.fluxshare"
     },
     "android": {
       "adaptiveIcon": {

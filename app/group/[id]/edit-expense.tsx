@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, StyleSheet, ScrollView } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSelector, useDispatch } from "react-redux";
 import { TextInput, Button, SegmentedButtons, Text, Chip, HelperText } from "react-native-paper";
 import type { RootState } from "../../../store";
@@ -123,7 +124,7 @@ export default function EditExpenseScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
@@ -218,7 +219,7 @@ export default function EditExpenseScreen() {
       >
         Änderungen speichern
       </Button>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

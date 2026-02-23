@@ -3,6 +3,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as SystemUI from "expo-system-ui";
 import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
 import { CustomHeader } from "../components/CustomHeader";
@@ -124,9 +125,11 @@ export default function Layout() {
     <AppErrorBoundary>
       <AuthProvider>
         <ReduxProvider store={store}>
-          <PaperProvider theme={appTheme}>
-            <RootStack />
-          </PaperProvider>
+          <KeyboardProvider>
+            <PaperProvider theme={appTheme}>
+              <RootStack />
+            </PaperProvider>
+          </KeyboardProvider>
         </ReduxProvider>
       </AuthProvider>
     </AppErrorBoundary>

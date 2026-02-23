@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text, HelperText } from "react-native-paper";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useAuth } from "../context/AuthContext";
 import { appColors } from "../theme";
 
@@ -91,9 +92,11 @@ export default function RegisterScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.inner}>
         <Text variant="headlineSmall" style={styles.title}>
@@ -157,7 +160,7 @@ export default function RegisterScreen() {
           Bereits Konto? Anmelden
         </Button>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -165,6 +168,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: appColors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
   },
   inner: { padding: 24 },
