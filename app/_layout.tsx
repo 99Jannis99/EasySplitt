@@ -14,6 +14,7 @@ import { appColors, appTheme } from "../theme";
 
 // Splash so lange anzeigen, bis wir explizit ausblenden (verhindert Flackern / „hängen“)
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 400, fade: true });
 
 class AppErrorBoundary extends React.Component<
   { children: React.ReactNode },
