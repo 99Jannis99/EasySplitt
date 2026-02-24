@@ -73,7 +73,7 @@ function RootStack() {
       const tokens = parseAuthUrl(url);
       if (!tokens) return;
       supabase.auth.setSession(tokens).then(() => {
-        router.dismissAll();
+        if (router.canGoBack()) router.dismissAll();
         router.replace("/");
       }).catch(() => {});
     };
@@ -137,6 +137,7 @@ function RootStack() {
       <Stack.Screen name="add-group-members" options={{ title: "Mitglieder hinzufügen" }} />
       <Stack.Screen name="edit-group" options={{ title: "Gruppe bearbeiten" }} />
       <Stack.Screen name="group/[id]/index" options={{ title: "Gruppe" }} />
+      <Stack.Screen name="group/[id]/info" options={{ title: "Aufteilung" }} />
       <Stack.Screen name="group/[id]/add-expense" options={{ title: "hinzufügen" }} />
       <Stack.Screen name="group/[id]/edit-expense" options={{ title: "bearbeiten" }} />
     </Stack>

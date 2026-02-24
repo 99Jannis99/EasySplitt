@@ -33,7 +33,7 @@ export default function AuthCallbackScreen() {
       .setSession({ access_token: accessToken, refresh_token: refreshToken })
       .then(() => {
         if (!cancelled) {
-          router.dismissAll();
+          if (router.canGoBack()) router.dismissAll();
           router.replace("/");
         }
       })

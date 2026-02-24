@@ -22,7 +22,7 @@ export default function GroupDetailScreen() {
   const expenses = useSelector((s: RootState) => selectExpensesForGroup(s, id ?? ""));
 
   const navigation = useNavigation();
-  const [headerPlusPressed, setHeaderPlusPressed] = useState(false);
+  const [headerPillPressed, setHeaderPillPressed] = useState(false);
 
   useEffect(() => {
     if (!group || !id) return;
@@ -31,30 +31,50 @@ export default function GroupDetailScreen() {
       headerRight: () => (
         <View style={styles.headerButtons}>
           {Platform.OS === "android" ? (
-            <GlassHeaderButton variant="circle" pressed={headerPlusPressed}>
+            <GlassHeaderButton variant="pill" pressed={headerPillPressed}>
+              <View style={styles.headerPillInner}>
+                <Pressable
+                  onPress={() => router.push(`/group/${id}/info`)}
+                  onPressIn={() => setHeaderPillPressed(true)}
+                  onPressOut={() => setHeaderPillPressed(false)}
+                  style={styles.headerButton}
+                  android_ripple={null}
+                >
+                  <Icon source="information-outline" size={24} color={headerButtonColor} />
+                </Pressable>
+                <Pressable
+                  onPress={() => router.push(`/group/${id}/add-expense`)}
+                  onPressIn={() => setHeaderPillPressed(true)}
+                  onPressOut={() => setHeaderPillPressed(false)}
+                  style={styles.headerButton}
+                  android_ripple={null}
+                >
+                  <Icon source="plus" size={24} color={headerButtonColor} />
+                </Pressable>
+              </View>
+            </GlassHeaderButton>
+          ) : (
+            <>
               <Pressable
-                onPress={() => router.push(`/group/${id}/add-expense`)}
-                onPressIn={() => setHeaderPlusPressed(true)}
-                onPressOut={() => setHeaderPlusPressed(false)}
+                onPress={() => router.push(`/group/${id}/info`)}
                 style={styles.headerButton}
                 android_ripple={null}
               >
-                <Icon source="plus" size={28} color={headerButtonColor} />
+                <Icon source="information-outline" size={24} color={headerButtonColor} />
               </Pressable>
-            </GlassHeaderButton>
-          ) : (
-            <Pressable
-              onPress={() => router.push(`/group/${id}/add-expense`)}
-              style={styles.headerButton}
-              android_ripple={null}
-            >
-              <Icon source="plus" size={28} color={headerButtonColor} />
-            </Pressable>
+              <Pressable
+                onPress={() => router.push(`/group/${id}/add-expense`)}
+                style={styles.headerButton}
+                android_ripple={null}
+              >
+                <Icon source="plus" size={24} color={headerButtonColor} />
+              </Pressable>
+            </>
           )}
         </View>
       ),
     });
-  }, [group, id, navigation, router, headerPlusPressed]);
+  }, [group, id, navigation, router, headerPillPressed]);
 
   if (!group) {
     return (
@@ -189,6 +209,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: appColors.background },
   scroll: { flex: 1 },
   headerButtons: { flexDirection: "row", alignItems: "center" },
+  headerPillInner: { flexDirection: "row", alignItems: "center", gap: 8 },
   headerButton: {
     width: 35,
     height: 35,
