@@ -1,9 +1,11 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import * as SystemUI from "expo-system-ui";
 import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { supabase } from "../lib/supabase";
 import { PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
 import { CustomHeader } from "../components/CustomHeader";
@@ -47,11 +49,38 @@ class AppErrorBoundary extends React.Component<
   }
 }
 
+function parseAuthUrl(url: string | null): { access_token: string; refresh_token: string } | null {
+  if (!url || !url.includes("auth")) return null;
+  try {
+    const parsed = Linking.parse(url);
+    const q = parsed.queryParams as Record<string, string> | undefined;
+    const access_token = q?.access_token;
+    const refresh_token = q?.refresh_token;
+    if (access_token && refresh_token) return { access_token, refresh_token };
+  } catch (_) {}
+  return null;
+}
+
 function RootStack() {
   const { session, loading } = useAuth();
+  const router = useRouter();
   const loaded = useRef(false);
 
   useRealtimeSync(session?.user?.id);
+
+  useEffect(() => {
+    const handleUrl = (url: string | null) => {
+      const tokens = parseAuthUrl(url);
+      if (!tokens) return;
+      supabase.auth.setSession(tokens).then(() => {
+        router.dismissAll();
+        router.replace("/");
+      }).catch(() => {});
+    };
+    Linking.getInitialURL().then(handleUrl);
+    const sub = Linking.addEventListener("url", (e) => handleUrl(e.url));
+    return () => sub.remove();
+  }, [router]);
 
   useEffect(() => {
     if (!session?.user?.id || loaded.current) return;
@@ -101,6 +130,7 @@ function RootStack() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Gruppen" }} />
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ title: "Anmelden" }} />
       <Stack.Screen name="register" options={{ title: "Registrieren" }} />
       <Stack.Screen name="add-group" options={{ title: "Neue Gruppe" }} />
