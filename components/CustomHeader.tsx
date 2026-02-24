@@ -1,7 +1,7 @@
 import { getHeaderTitle } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,10 +9,8 @@ import { appTheme } from "../theme";
 import { GlassHeaderButton, HeaderEnterTriggerContext } from "./GlassHeaderButton";
 
 const HEADER_BAR_HEIGHT = 64;
-/** Ab dieser Titel-Länge Back-Button nur als Icon (ohne Text), damit mehr Platz für den Titel ist. */
-const TITLE_LONG_THRESHOLD = 20;
-/** Back-Button-Text (z. B. „Zurück“, „Gruppen“) nur anzeigen, wenn so kurz; sonst nur Icon. */
-const BACK_LABEL_MAX_LENGTH = 12;
+/** Titel gilt als gekürzt, wenn die volle Titelbreite (ohne Constraint) größer als maxTitleWidth ist. */
+const TRUNCATE_EPSILON = 1;
 
 type HeaderProps = {
   options: { title?: string; headerRight?: (props: unknown) => React.ReactNode };
@@ -28,6 +26,8 @@ export function CustomHeader({ options, route, back }: HeaderProps) {
   const [barWidth, setBarWidth] = useState(0);
   const [leftWidth, setLeftWidth] = useState(0);
   const [rightWidth, setRightWidth] = useState(0);
+  const [isTitleTruncated, setIsTitleTruncated] = useState(false);
+  const [fullTitleWidth, setFullTitleWidth] = useState<number | null>(null);
 
   const GAP = 12;
   const BAR_PADDING = 12; // paddingHorizontal der Bar
@@ -53,10 +53,20 @@ export function CustomHeader({ options, route, back }: HeaderProps) {
   const onRightLayout = (e: LayoutChangeEvent) =>
     setRightWidth(e.nativeEvent.layout.width);
 
-  const showBackLabel =
-    back?.title &&
-    title.length <= TITLE_LONG_THRESHOLD &&
-    back.title.length <= BACK_LABEL_MAX_LENGTH;
+  const showBackLabel = back?.title && !isTitleTruncated;
+
+  // Volle Titelbreite vs. verfügbarer Platz: wenn voller Titel nicht passt → Back-Button ohne Text
+  useEffect(() => {
+    if (maxTitleWidth != null && fullTitleWidth != null && fullTitleWidth > maxTitleWidth + TRUNCATE_EPSILON) {
+      setIsTitleTruncated(true);
+    }
+  }, [maxTitleWidth, fullTitleWidth]);
+
+  // Bei neuem Screen (neuer Titel) zurücksetzen und Vollbreite neu messen
+  useEffect(() => {
+    setIsTitleTruncated(false);
+    setFullTitleWidth(null);
+  }, [title]);
 
   const [enterTrigger, setEnterTrigger] = useState(0);
   useFocusEffect(
@@ -101,6 +111,18 @@ export function CustomHeader({ options, route, back }: HeaderProps) {
         </View>
         <View style={styles.right} onLayout={onRightLayout}>
           {typeof options.headerRight === "function" ? options.headerRight({}) : null}
+        </View>
+        {/* Versteckter Text: misst die volle Breite des Titels ohne maxWidth */}
+        <View style={styles.hiddenTitleWrap} pointerEvents="none">
+          <Text
+            style={[styles.title, styles.hiddenTitle]}
+            onTextLayout={(e) => {
+              const w = e.nativeEvent.lines[0]?.width;
+              if (typeof w === "number") setFullTitleWidth(w);
+            }}
+          >
+            {title}
+          </Text>
         </View>
         <View style={styles.titleCenter} pointerEvents="none">
           <View
@@ -162,4 +184,11 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: "600" },
   headerBackLabel: { fontSize: 17, marginLeft: 2, color: "#000000" },
+  hiddenTitleWrap: {
+    position: "absolute",
+    left: -10000,
+    opacity: 0,
+    pointerEvents: "none",
+  },
+  hiddenTitle: { color: "transparent" },
 });
